@@ -1,0 +1,14 @@
+/Users/devinmcdaniel/Documents/Development/C#AccountingApp/bin/Debug/net7.0/C#AccountingApp
+/Users/devinmcdaniel/Documents/Development/C#AccountingApp/bin/Debug/net7.0/C#AccountingApp.deps.json
+/Users/devinmcdaniel/Documents/Development/C#AccountingApp/bin/Debug/net7.0/C#AccountingApp.runtimeconfig.json
+/Users/devinmcdaniel/Documents/Development/C#AccountingApp/bin/Debug/net7.0/C#AccountingApp.dll
+/Users/devinmcdaniel/Documents/Development/C#AccountingApp/bin/Debug/net7.0/C#AccountingApp.pdb
+/Users/devinmcdaniel/Documents/Development/C#AccountingApp/obj/Debug/net7.0/C#AccountingApp.GeneratedMSBuildEditorConfig.editorconfig
+/Users/devinmcdaniel/Documents/Development/C#AccountingApp/obj/Debug/net7.0/C#AccountingApp.AssemblyInfoInputs.cache
+/Users/devinmcdaniel/Documents/Development/C#AccountingApp/obj/Debug/net7.0/C#AccountingApp.AssemblyInfo.cs
+/Users/devinmcdaniel/Documents/Development/C#AccountingApp/obj/Debug/net7.0/C#AccountingApp.csproj.CoreCompileInputs.cache
+/Users/devinmcdaniel/Documents/Development/C#AccountingApp/obj/Debug/net7.0/C#AccountingApp.dll
+/Users/devinmcdaniel/Documents/Development/C#AccountingApp/obj/Debug/net7.0/refint/C#AccountingApp.dll
+/Users/devinmcdaniel/Documents/Development/C#AccountingApp/obj/Debug/net7.0/C#AccountingApp.pdb
+/Users/devinmcdaniel/Documents/Development/C#AccountingApp/obj/Debug/net7.0/C#AccountingApp.genruntimeconfig.cache
+/Users/devinmcdaniel/Documents/Development/C#AccountingApp/obj/Debug/net7.0/ref/C#AccountingApp.dll
