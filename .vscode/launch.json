@@ -1,0 +1,11 @@
+{
+  "configurations": [
+    {
+      "name": "C#: C#AccountingApp",
+      "type": "dotnet",
+      "request": "launch",
+      "projectPath": "${workspaceFolder}/C#AccountingApp.csproj",
+      "launchConfigurationId": "TargetFramework=;C#AccountingApp"
+    }
+  ]
+}
