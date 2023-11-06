@@ -8,12 +8,13 @@ using System.Runtime.InteropServices;
 //Initialize App Object
 string defaultOwner = "John Doe";
 decimal defaultBalance = 0.00m;
+decimal defaultInt = 3.00m;
 int checkingAccountCode = 100;
 int savingsAccountCode = 200;
 
-Account myAccount = new Account(defaultOwner, defaultBalance);
-CheckingAccount myChecking = new CheckingAccount(defaultOwner, checkingAccountCode, defaultBalance);
-SavingsAccount mySavings = new SavingsAccount(defaultOwner, savingsAccountCode);
+Account myAccount = new Account(defaultOwner, defaultBalance, defaultInt);
+CheckingAccount myChecking = new CheckingAccount(defaultOwner, checkingAccountCode, defaultBalance, defaultInt);
+SavingsAccount mySavings = new SavingsAccount(defaultOwner, savingsAccountCode, defaultInt);
 
 Console.WriteLine("Welcome to MyAccount System 1.0");
 Console.WriteLine("Press any key to continue");
@@ -30,7 +31,8 @@ void openMenu()
   2.) Get Account and Balance Information
   3.) Withdraw or Deposit Money
   4.) Transfer Funds
-  5.) Calculate Account Interest");
+  5.) Calculate Account Interest
+  ");
 
   string ?selected = Console.ReadLine();
 
@@ -73,15 +75,15 @@ Account? handleMenuSelection(int menuItemSelected, Account account)
     case 2:
       Console.WriteLine(@"Get Account and Balance Information
       ");
+      Console.WriteLine($"Hello, {myAccount.Owner}");
       myChecking.printBalance();
       mySavings.printBalance();
 
-      Console.WriteLine(@"
-      ");
+      Console.WriteLine();
       openMenu();
       return null;
     case 3:
-      Console.WriteLine(@$"Withdraw or Deposit Money (1-2)
+      Console.WriteLine(@$"Withdraw or Deposit Money
       ");
 
       account.moveMoney(myChecking, mySavings);
@@ -91,15 +93,16 @@ Account? handleMenuSelection(int menuItemSelected, Account account)
       return null;
     case 4:
       Console.WriteLine("Transfer Funds");
-      myAccount = account;
+      account.transferMoney(myChecking, mySavings);
 
       Console.WriteLine();
       openMenu();
-      return myAccount;
+      return null;
     case 5:
-      Console.WriteLine("Calculate Account Interest");
-      myAccount = account;
-
+      Console.WriteLine(@"Calculate Account Interest
+      ");
+      account.getInterest(myChecking, mySavings);
+      
       Console.WriteLine();
       openMenu();
       return myAccount;
@@ -122,10 +125,13 @@ class Account {
   public string Owner;
   public decimal Balance;
 
-  public Account(string owner, decimal openingBalance)
+  public decimal IntRate; 
+
+  public Account(string owner, decimal openingBalance, decimal intRate)
   {
     Owner = owner;
     Balance = openingBalance;
+    IntRate = intRate;
   }
 
   public static Account OpenAccount(Account account)
@@ -139,12 +145,13 @@ class Account {
     Console.WriteLine();
 
     decimal openingBalanceParsed;
+    decimal intRate = account.IntRate;
 
     if (decimal.TryParse(openingBalance, out _))
     {
       openingBalanceParsed = decimal.Parse(openingBalance);
 
-      return new Account(owner, openingBalanceParsed);
+      return new Account(owner, openingBalanceParsed, intRate);
     }
     else
     {
@@ -157,11 +164,11 @@ class Account {
 
   //function to init Checking and Savings account instances
   public static CheckingAccount initChecking(Account account) {
-    CheckingAccount newCheckingAccount = new CheckingAccount(account.Owner, 100, account.Balance);
+    CheckingAccount newCheckingAccount = new CheckingAccount(account.Owner, 100, account.Balance, account.IntRate);
     return newCheckingAccount;
   }
   public static SavingsAccount initSavings(Account account) {
-    SavingsAccount newSavingsAccount = new SavingsAccount(account.Owner, 200);
+    SavingsAccount newSavingsAccount = new SavingsAccount(account.Owner, 200, account.IntRate);
     return newSavingsAccount;
   }
 
@@ -172,14 +179,16 @@ class Account {
     Console.WriteLine(@"Which account would you like to work with? (1-2)
     
     1.) Checking
-    2.) Savings");
+    2.) Savings
+    ");
 
     string? accountSelection = Console.ReadLine();
 
     Console.WriteLine(@"What would you like to do? (1-2)
     
     1.) Withdraw
-    2.) Deposit");
+    2.) Deposit
+    ");
 
     string? operationSelection = Console.ReadLine();
 
@@ -208,6 +217,78 @@ class Account {
         break;
       }
     }
+
+    public void transferMoney(CheckingAccount checking, SavingsAccount savings)
+    {
+      //From which account?
+      Console.WriteLine(@"Which account are you transferring from? (1-2)
+    
+      1.) Checking
+      2.) Savings
+      ");
+
+      string? accountSelection = Console.ReadLine();
+
+      Console.WriteLine(@"How much would you like to transfer?
+      ");
+
+      string? reqAmount = Console.ReadLine();
+      
+      if(accountSelection == "1")
+      {
+        if(checking.withdrawChecking(checking, reqAmount)) 
+        {
+          savings.depositSavings(savings, reqAmount); //if the withdraw succeeds, then run the depositSavings function
+        }
+      } else if (accountSelection == "2")
+      {
+        if(savings.withdrawSavings(savings, reqAmount))
+        {
+          checking.depositChecking(checking, reqAmount);
+        }
+      } else if (accountSelection != "1" && accountSelection != "2") {
+        Console.WriteLine("Invalid operation, enter 1 or 2 to choose an account");
+        return;
+      } else {
+        return;
+      }
+    }
+
+    public void getInterest(CheckingAccount checking, SavingsAccount savings)
+    {
+    //From which account?
+    Console.WriteLine(@"Which account would you like your interest balance? (1-2)
+    1.) Checking
+    2.) Savings
+    ");
+
+    string? accountSelection = Console.ReadLine();
+
+    if(accountSelection == "1")
+      {
+        checking.printIntBalance();
+      } else if (accountSelection == "2")
+      {
+        savings.printIntBalance();
+      } else if (accountSelection != "1" && accountSelection != "2") {
+        Console.WriteLine("Invalid operation, enter 1 or 2 to choose an account");
+        return;
+      } else {
+        return;
+      }
+    }
+    
+    public virtual void CalcInterest(decimal IntRate, int ID)
+    {
+      decimal intRateParsed = IntRate / 100;
+      decimal intAmount = Balance * intRateParsed;
+
+      Balance = Balance + intAmount;
+
+      Console.WriteLine(@$"Your interest on your account (ID: {ID}) as of {DateTime.UtcNow.ToLongDateString()} is £{intAmount.ToString("F2")}
+      Your total calculated balance with interest is £{Balance + intAmount}
+      ");
+    }
   }
 
 
@@ -216,41 +297,84 @@ class CheckingAccount : Account
 {
   public int ID { get; private set; }
 
-  public CheckingAccount(string owner, int id, decimal openingBalance) : base(owner, openingBalance)
+  public CheckingAccount(string owner, int id, decimal openingBalance, decimal intRate) : base(owner, openingBalance, intRate)
   {
     ID = id;
+    IntRate = intRate + 0.0m;
+  }
+
+  public void printIntBalance()
+  {
+    CalcInterest(IntRate, ID);
   }
 
   public void printBalance()
   {
-    Console.WriteLine($"Hello, {Owner}");
-    Console.WriteLine($"Your checking balance as of {DateTime.UtcNow.ToLongDateString()} is £{Balance.ToString("F2")}");
+    Console.WriteLine($"Your checking balance (ID: {ID}) as of {DateTime.UtcNow.ToLongDateString()} is £{Balance.ToString("F2")}");
   }
-    public CheckingAccount withdrawChecking(CheckingAccount checking)
+
+  public CheckingAccount withdrawChecking(CheckingAccount checking)
+    {
+      Console.WriteLine(@"How much would you like to withdraw?
+      ");
+      string? withdrawAmt = Console.ReadLine();
+
+      if (decimal.TryParse(withdrawAmt, out _))
       {
-        Console.WriteLine("How much would you like to withdraw?");
-        string? withdrawAmt = Console.ReadLine();
+        decimal withdrawAmtParsed = decimal.Parse(withdrawAmt);
 
-        if (decimal.TryParse(withdrawAmt, out _))
+        if(withdrawAmtParsed > checking.Balance) { 
+          Console.WriteLine("Insufficient funds");
+          printBalance();
+          return checking; 
+        };
+
+        checking.Balance = checking.Balance - withdrawAmtParsed;
+
+        Console.WriteLine($"Withdrawal complete. Your checking balance is £{checking.Balance.ToString("F2")}");
+
+        return checking;
+      }
+      else
+      {
+        Console.WriteLine("Invalid input. Please enter a valid number.");
+        withdrawChecking(checking);
+
+        return checking; //never reached, see Recursion above
+      } 
+    }
+
+    public bool withdrawChecking(CheckingAccount checking, string? transferAmt) //Overload for Transfers
+      {
+        if (decimal.TryParse(transferAmt, out _))
         {
-          decimal withdrawAmtParsed = decimal.Parse(withdrawAmt);
-          checking.Balance = checking.Balance - withdrawAmtParsed;
+          decimal transferAmtParsed = decimal.Parse(transferAmt);
 
-          Console.WriteLine($"Withdrawal complete. Your balance is £{checking.Balance.ToString("F2")}");
+          if(transferAmtParsed > checking.Balance) { 
+            Console.WriteLine("Insufficient funds");
+            printBalance(); 
+            return false; 
+          };
 
-          return checking;
+          checking.Balance = checking.Balance - transferAmtParsed;
+
+          Console.WriteLine($"Transfer complete. Your checking balance is £{checking.Balance.ToString("F2")}");
+
+          return true;
         }
         else
         {
-          Console.WriteLine("Invalid input. Please enter a valid number.");
-          withdrawChecking(checking);
+          Console.WriteLine(@"Operation failed. 
+          Please check your request was entered correctly and
+          the funds are available to send, then try again.");
 
-          return checking; //never reached, see Recursion above
+          return false; //never reached, see Recursion above
         } 
       }
     public CheckingAccount depositChecking(CheckingAccount checking)
       {
-        Console.WriteLine("How much would you like to deposit?");
+        Console.WriteLine(@"How much would you like to deposit?
+        ");
         string? depositAmt = Console.ReadLine();
 
         if (decimal.TryParse(depositAmt, out _))
@@ -258,7 +382,7 @@ class CheckingAccount : Account
           decimal depositAmtParsed = decimal.Parse(depositAmt);
           checking.Balance = checking.Balance + depositAmtParsed;
 
-          Console.WriteLine($"Thank you for your deposit. Your balance is {checking.Balance.ToString("F2")}");
+          Console.WriteLine($"Thank you for your deposit. Your checking balance is £{checking.Balance.ToString("F2")}");
 
           return checking;
         }
@@ -270,6 +394,22 @@ class CheckingAccount : Account
           return checking; //never reached, see Recursion above
         } 
       }
+    public CheckingAccount depositChecking(CheckingAccount checking, string? transferAmt)
+      {
+        if (decimal.TryParse(transferAmt, out _))
+        {
+          decimal transferAmtParsed = decimal.Parse(transferAmt);
+          checking.Balance = checking.Balance + transferAmtParsed;
+
+          Console.WriteLine($"Transfer complete. Your checking balance is £{checking.Balance.ToString("F2")}");
+
+          return checking;
+        }
+        else
+        {
+          return checking; //never reached, see Recursion above
+        } 
+      }
 }
 
 class SavingsAccount : Account
@@ -278,29 +418,54 @@ class SavingsAccount : Account
 
   public decimal SavingsBalance { get; set; }
 
-  public SavingsAccount(string owner, int id) : base(owner, 0)
+  public SavingsAccount(string owner, int id, decimal intRate) : base(owner, 0, intRate)
   {
     SavingsBalance = Balance;
     ID = id;
+    IntRate = intRate + 1.00m;
   }
 
   public void printBalance()
   {
-    Console.WriteLine(@$"Your savings balance as of {DateTime.UtcNow.ToLongDateString()} is £{SavingsBalance.ToString("F2")}
+    Console.WriteLine(@$"Your savings balance (ID: {ID}) as of {DateTime.UtcNow.ToLongDateString()} is £{SavingsBalance.ToString("F2")}
     ");
+  }
+
+  public void printIntBalance()
+  {
+    CalcInterest(IntRate, ID);
+  }
+
+  public override void CalcInterest(decimal IntRate, int ID) //Savings version
+  {
+    decimal intRateParsed = (IntRate + 1) / 100;
+    decimal intAmount = SavingsBalance * intRateParsed;
+
+    SavingsBalance = SavingsBalance + intAmount;
+
+    Console.WriteLine(@$"Your interest on your account (ID: {ID}) as of {DateTime.UtcNow.ToLongDateString()} is £{intAmount.ToString("F2")}
+    Your total calculated balance with interest is £{SavingsBalance + intAmount}");
   }
 
   public SavingsAccount withdrawSavings(SavingsAccount savings)
       {
-        Console.WriteLine("How much would you like to withdraw?");
+        Console.WriteLine(@"How much would you like to withdraw?
+        ");
         string? withdrawAmt = Console.ReadLine();
 
         if (decimal.TryParse(withdrawAmt, out _))
         {
           decimal withdrawAmtParsed = decimal.Parse(withdrawAmt);
+
+          if(withdrawAmtParsed > savings.Balance) { 
+            Console.WriteLine("Insufficient funds");
+            printBalance(); 
+            return savings; 
+          };
+
           savings.SavingsBalance = savings.SavingsBalance - withdrawAmtParsed;
 
-          Console.WriteLine($"Withdrawal complete. Your balance is {savings.SavingsBalance.ToString("F2")}");
+          Console.WriteLine($"Withdrawal complete. Your savings balance is £{savings.SavingsBalance.ToString("F2")}");
 
           return savings;
         }
@@ -313,9 +478,37 @@ class SavingsAccount : Account
         } 
       }
 
+      public bool withdrawSavings(SavingsAccount savings, string? transferAmt)
+      {
+        if (decimal.TryParse(transferAmt, out _))
+        {
+          decimal transferAmtParsed = decimal.Parse(transferAmt);
+
+          if(transferAmtParsed > savings.Balance) { 
+            Console.WriteLine("Insufficient funds");
+            printBalance(); 
+            return false; 
+          };
+
+          savings.SavingsBalance = savings.SavingsBalance - transferAmtParsed;
+
+          Console.WriteLine($"Transfer complete. Your savings balance is £{savings.SavingsBalance.ToString("F2")}");
+
+          return true;
+        }
+        else
+        {
+          Console.WriteLine(@"Operation failed. 
+          Please check your request was entered correctly and
+          the funds are available to send, then try again.");
+          return false; //never reached, see Recursion above
+        } 
+      }
+
       public SavingsAccount depositSavings(SavingsAccount savings)
       {
-        Console.WriteLine("How much would you like to deposit?");
+        Console.WriteLine(@"How much would you like to deposit?
+        ");
         string? depositAmt = Console.ReadLine();
 
         if (decimal.TryParse(depositAmt, out _))
@@ -323,7 +516,7 @@ class SavingsAccount : Account
           decimal depositAmtParsed = decimal.Parse(depositAmt);
           savings.SavingsBalance = savings.SavingsBalance + depositAmtParsed;
 
-          Console.WriteLine($"Thank you for your deposit. Your balance is {savings.SavingsBalance.ToString("F2")}");
+          Console.WriteLine($"Thank you for your deposit. Your savings balance is £{savings.SavingsBalance.ToString("F2")}");
           return savings;
         }
         else
@@ -331,6 +524,22 @@ class SavingsAccount : Account
           Console.WriteLine("Invalid input. Please enter a valid number.");
           depositSavings(savings);
 
+          return savings; //never reached, see Recursion above
+        } 
+      }
+      public SavingsAccount depositSavings(SavingsAccount savings, string? transferAmt)
+      {
+        if (decimal.TryParse(transferAmt, out _))
+        {
+          decimal transferAmtParsed = decimal.Parse(transferAmt);
+          
+          savings.SavingsBalance = savings.SavingsBalance + transferAmtParsed;
+
+          Console.WriteLine($"Transfer complete. Your savings balance is £{savings.SavingsBalance.ToString("F2")}");
+          return savings;
+        }
+        else
+        {
           return savings; //never reached, see Recursion above
         } 
       }
