@@ -1,11 +1,4 @@
-﻿//Greet the user
-using System.Buffers;
-using System.Net.Http.Headers;
-using System.Reflection.Metadata.Ecma335;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-
-//Initialize App with defaults, greet user, and open the main menu
+﻿//Initialize App with defaults, greet user, and open the main menu
 string defaultOwner = "John Doe";
 decimal defaultBalance = 0.00m;
 decimal defaultInt = 3.00m;
